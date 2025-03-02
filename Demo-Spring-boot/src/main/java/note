@@ -1,0 +1,34 @@
+mỗi request qua 3 tầng (layer): (1) controller -> (2) service (logic) -> (3) repository : 3 lớp gọi xuống
+controller -> service -> repository lần này là UserController gọi UserService gọi UserRepository
+
+@RequestBody chủ yếu dùng với các HTTP method như POST, PUT, PATCH mục đích nhận dữ liệu từ request body của HTTP Request, tự động
+chuyển đổi JSON thành đối tượng JAVA
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
