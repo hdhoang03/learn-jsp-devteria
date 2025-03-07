@@ -49,6 +49,7 @@ public class UserController {
     @GetMapping("/myInfo") //trả về thông tin của chính người dùng
     ApiResponse<UserResponse> getMyInfo(){
         return ApiResponse.<UserResponse>builder()
+                .code(1000)
                 .result(userService.getMyInfo())
                 .build();
     }

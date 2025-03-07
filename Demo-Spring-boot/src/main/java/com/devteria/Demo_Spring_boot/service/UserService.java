@@ -3,8 +3,8 @@ package com.devteria.Demo_Spring_boot.service;
 import com.devteria.Demo_Spring_boot.dto.request.UserCreationRequest;
 import com.devteria.Demo_Spring_boot.dto.request.UserUpdateRequest;
 import com.devteria.Demo_Spring_boot.dto.response.UserResponse;
+import com.devteria.Demo_Spring_boot.entity.Role;
 import com.devteria.Demo_Spring_boot.entity.User;
-import com.devteria.Demo_Spring_boot.enums.Role;
 import com.devteria.Demo_Spring_boot.exception.AppException;
 import com.devteria.Demo_Spring_boot.exception.ErrorCode;
 import com.devteria.Demo_Spring_boot.mapper.UserMapper;
@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,8 +53,12 @@ public class UserService {
 
 //        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);//độ khó mã hóa (đã đánh dấu bean bên class SecurityConfig)
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        HashSet<String> roles = new HashSet<>();
-        roles.add(Role.USER.name());
+
+//        HashSet<String> roles = new HashSet<>();
+//        roles.add(Role.USER.name());
+
+        Role userRole = roleRepository.findByName("USER").orElseThrow(()->new AppException(ErrorCode.UNAUTHENTICATED));
+        user.setRoles(Collections.singleton(userRole));
 
 //        user.setRoles(roles);
 //          thay vì tạo thủ công bằng tay sẽ map dữ liệu từ CreateUserRequest sang user rồi gọi toUser truyền request đó vào

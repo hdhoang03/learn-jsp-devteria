@@ -1,8 +1,6 @@
 package com.devteria.Demo_Spring_boot.controller;
 
-import com.devteria.Demo_Spring_boot.dto.request.ApiResponse;
-import com.devteria.Demo_Spring_boot.dto.request.AuthenticationRequest;
-import com.devteria.Demo_Spring_boot.dto.request.IntrospectRequest;
+import com.devteria.Demo_Spring_boot.dto.request.*;
 import com.devteria.Demo_Spring_boot.dto.response.AuthenticationResponse;
 import com.devteria.Demo_Spring_boot.dto.response.IntrospectResponse;
 import com.devteria.Demo_Spring_boot.service.AuthenticationService;
@@ -32,6 +30,7 @@ public class AuthenticationController {
 //                .result(AuthenticationResponse.builder()
 //                        .authenticated(result)
 //                        .build())
+                .code(1000)
                 .result(result)
                 .build();
     }
@@ -40,6 +39,24 @@ public class AuthenticationController {
         var result = authenticationService.introspect(request);
         return ApiResponse.<IntrospectResponse>builder()
                 .result(result)
+                .build();
+    }
+
+    @PostMapping("/refresh")//log-in
+    ApiResponse<AuthenticationResponse> refreshToken(@RequestBody RefreshRequest request)
+            throws ParseException, JOSEException {
+        var result = authenticationService.refreshToken(request);
+        return ApiResponse.<AuthenticationResponse>builder()
+                .code(1000)
+                .result(result)
+                .build();
+    }
+
+    @PostMapping("/logout")
+    ApiResponse<Void> logout(@RequestBody LogoutRequest request)
+            throws ParseException, JOSEException {
+        authenticationService.logOut(request);
+        return ApiResponse.<Void>builder()
                 .build();
     }
 }

@@ -1,10 +1,12 @@
 package com.devteria.Demo_Spring_boot.configuration;
 
 import com.devteria.Demo_Spring_boot.enums.Role;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -17,8 +19,12 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.spec.SecretKeySpec;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity//spring security tự enable rồi nên có hoặc không cũng được
@@ -26,11 +32,15 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class SecurityConfig {
 
-    private final String[] PUBLIC_ENDPOINTS = {"/users", "/auth/token", "/auth/introspect"}; //truyền các API vào nhanh hơn, các API này truy cập không cần token như đăng ký tài khoản mới
+    private final String[] PUBLIC_ENDPOINTS =
+            {"/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh"}; //truyền các API vào nhanh hơn, các API này truy cập không cần token như đăng ký tài khoản mới
 
-    @Value("${jwt.signerKey}") //map signerKey từ file application.yaml vào trong này
-    private String signerKey;
+    //ko cần vì đã map trong customJwtDecoder
+//    @Value("${jwt.signerKey}") //map signerKey từ file application.yaml vào trong này
+//    private String signerKey;
 
+    @Autowired
+    private CustomJwtDecoder customJwtDecoder;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
@@ -44,7 +54,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated());//còn lại các request khác phải dùng token
 
         httpSecurity.oauth2ResourceServer(oauth2 ->
-            oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder())
+            oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJwtDecoder)
                     .jwtAuthenticationConverter(jwtAuthenticationConverter()))// cần truyền jwtDecoder vào nên định nghĩa hàm ở dưới
                     .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
                 /*
@@ -53,17 +63,21 @@ public class SecurityConfig {
                 *  */
         );
         httpSecurity.csrf(AbstractHttpConfigurer::disable);//tắt bảo vệ csrf vì API REST không cần csrf
+
+        httpSecurity.cors(Customizer.withDefaults());//Kết nối fe
         return httpSecurity.build();
     }
 
-    @Bean
-    JwtDecoder jwtDecoder(){ //xác thực JWT sử dụng khóa bí mật signerKey
-        SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(),"HS512");//truyền thuật toán mã hóa vào
-        return NimbusJwtDecoder
-                .withSecretKey(secretKeySpec)
-                .macAlgorithm(MacAlgorithm.HS512)
-                .build();
-    }
+    //có customJwtDecoder rồi nên không dùng
+//    @Bean
+//    JwtDecoder jwtDecoder(){ //xác thực JWT sử dụng khóa bí mật signerKey
+//        SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(),"HS512");//truyền thuật toán mã hóa vào
+//        return NimbusJwtDecoder
+//                .withSecretKey(secretKeySpec)
+//                .macAlgorithm(MacAlgorithm.HS512)
+//                .build();
+//    }
+
     @Bean //đánh dấu 1 bean vì dùng nhiều nơi
     PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder(10);
@@ -76,6 +90,19 @@ public class SecurityConfig {
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
         return jwtAuthenticationConverter;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("*")); // Đổi theo frontend của bạn http://127.0.0.1:5500
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
 /*
