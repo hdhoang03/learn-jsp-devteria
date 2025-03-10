@@ -1,5 +1,6 @@
 package com.devteria.Demo_Spring_boot.service;
 
+import com.devteria.Demo_Spring_boot.constaint.PredefinedRole;
 import com.devteria.Demo_Spring_boot.dto.request.UserCreationRequest;
 import com.devteria.Demo_Spring_boot.dto.request.UserUpdateRequest;
 import com.devteria.Demo_Spring_boot.dto.response.UserResponse;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.mapping.Set;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
@@ -42,11 +44,11 @@ public class UserService {
     RoleRepository roleRepository;
 
     public UserResponse createUser(UserCreationRequest request){
-        // Kiểm tra xem username đã tồn tại chưa
-        if (userRepository.existsByUsername(request.getUsername()))
+        // Kiểm tra xem username đã tồn tại chưa 46 và 50 đã // ngày 10/3 vì đã đánh annotation @column trường username thì không cần kiểm tra tồn tại hay chưa
+//        if (userRepository.existsByUsername(request.getUsername()))
 //            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists"); //không dùng vì có class xử lý lỗi rồi
 //            throw new RuntimeException("User existed.");
-            throw new AppException(ErrorCode.USER_EXISTED); //throw exception với 1 errorcode đã định nghĩa, ở đây là USER_EXISTED
+//            throw new AppException(ErrorCode.USER_EXISTED); //throw exception với 1 errorcode đã định nghĩa, ở đây là USER_EXISTED
 //            throw new RuntimeException("ErrorCode.USER_EXITED");
 
         User user = userMapper.toUser(request);
@@ -54,11 +56,13 @@ public class UserService {
 //        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);//độ khó mã hóa (đã đánh dấu bean bên class SecurityConfig)
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-//        HashSet<String> roles = new HashSet<>();
-//        roles.add(Role.USER.name());
+        HashSet<Role> roles = new HashSet<>();
+        roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(roles::add);
 
-        Role userRole = roleRepository.findByName("USER").orElseThrow(()->new AppException(ErrorCode.UNAUTHENTICATED));
-        user.setRoles(Collections.singleton(userRole));
+        user.setRoles(roles);
+
+//        Role userRole = roleRepository.findByName("USER").orElseThrow(()->new AppException(ErrorCode.UNAUTHENTICATED));
+//        user.setRoles(Collections.singleton(userRole));
 
 //        user.setRoles(roles);
 //          thay vì tạo thủ công bằng tay sẽ map dữ liệu từ CreateUserRequest sang user rồi gọi toUser truyền request đó vào
@@ -68,7 +72,12 @@ public class UserService {
 //        user.setLastName(request.getLastName());
 //        user.setDob(request.getDob());
 
-        return userMapper.toUserResponse(userRepository.save(user));
+        try {//nếu tồn tại nhả lỗi userexisted và ngược lại sẽ lưu user để cho dbms làm chứ không cần làm thủ công
+            user = userRepository.save(user);
+        } catch (DataIntegrityViolationException exception){
+            throw new AppException(ErrorCode.USER_EXISTED);
+        }
+        return userMapper.toUserResponse(user);
     }
 
     @PreAuthorize("hasRole('ADMIN')")//Kiểm tra nếu role là admin mới chạy hàm này, phân quyền theo role

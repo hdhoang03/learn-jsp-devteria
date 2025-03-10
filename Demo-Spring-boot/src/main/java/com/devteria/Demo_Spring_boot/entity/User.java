@@ -17,6 +17,9 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
+
+    //đánh trường username thành unique, định dạng varchar không phân biệt hoa thường với COLLATE utf8mb4_unicode_ci
+    @Column(name = "username", unique = true, columnDefinition = "VARCHAR(255) COLLATE utf8mb4_unicode_ci")
     String username;
     String password;
     String firstName;
