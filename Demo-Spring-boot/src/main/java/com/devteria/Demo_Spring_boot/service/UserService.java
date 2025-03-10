@@ -75,6 +75,9 @@ public class UserService {
         try {//nếu tồn tại nhả lỗi userexisted và ngược lại sẽ lưu user để cho dbms làm chứ không cần làm thủ công
             user = userRepository.save(user);
         } catch (DataIntegrityViolationException exception){
+            if(userRepository.existsByEmail(request.getEmail())){
+                throw new AppException(ErrorCode.EMAIL_EXISTED);
+            }
             throw new AppException(ErrorCode.USER_EXISTED);
         }
         return userMapper.toUserResponse(user);

@@ -23,8 +23,10 @@ public class User {
     String username;
     String password;
     String firstName;
-    LocalDate dob;
     String lastName;
+    @Column(name = "email", unique = true)
+    String email;
+    LocalDate dob;
 //    Set<String> roles; //set đảm bảo các phần tử không trùng lặp và tốc độ tìm kiếm nhanh hơn list
 
     @ManyToMany

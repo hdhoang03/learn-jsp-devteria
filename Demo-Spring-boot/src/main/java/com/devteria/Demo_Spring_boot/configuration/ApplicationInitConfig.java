@@ -34,29 +34,47 @@ public class ApplicationInitConfig {
     @NonFinal
     static final String ADMIN_PASSWORD = "admin";
 
+    @NonFinal
+    static final String ADMIN_EMAIL = "adminexample@gmail.com";
+
     @Bean
     @ConditionalOnProperty(
             prefix = "spring",
             value = "datasource.driverClassName",
             havingValue = "com.mysql.cj.jdbc.Driver")
     ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository){
-        log.info("Initializing application.....");
         return args -> {
-            if (userRepository.findByUsername(ADMIN_USER_NAME).isEmpty()){
-//                var roles = new HashSet<String>();
-//                roles.add(Role.ADMIN.name());
-//                User user = User.builder()
-//                        .username("admin")
-//                        .password(passwordEncoder.encode("admin"))
-////                        .roles(roles)//truyền role vào
-//                        .build();
-//                userRepository.save(user);
-//                log.warn("admin has been created with default password is admin, please change password.");
+            log.info("Initializing application..... Please wait.");
+
+//            if (userRepository.findByUsername(ADMIN_USER_NAME).isEmpty()){
+//
+////                var roles = new HashSet<String>();
+////                roles.add(Role.ADMIN.name());
+////                User user = User.builder()
+////                        .username("admin")
+////                        .password(passwordEncoder.encode("admin"))
+//////                        .roles(roles)//truyền role vào
+////                        .build();
+////                userRepository.save(user);
+////                log.warn("admin has been created with default password is admin, please change password.");
+//                roleRepository.save(Role.builder()
+//                        .name(PredefinedRole.USER_ROLE)
+//                        .description("User role")
+//                        .build());
+//
+//                Role adminRole = roleRepository.save(Role.builder()
+//                        .name(PredefinedRole.ADMIN_ROLE)
+//                        .description("Admin role")
+//                        .build());
+
+            if (!roleRepository.existsByName(PredefinedRole.USER_ROLE)) {
                 roleRepository.save(Role.builder()
                         .name(PredefinedRole.USER_ROLE)
                         .description("User role")
                         .build());
+            }
 
+            if(!roleRepository.existsByName(PredefinedRole.ADMIN_ROLE)){
                 Role adminRole = roleRepository.save(Role.builder()
                         .name(PredefinedRole.ADMIN_ROLE)
                         .description("Admin role")
@@ -68,11 +86,12 @@ public class ApplicationInitConfig {
                 User user = User.builder()
                         .username(ADMIN_USER_NAME)
                         .password(passwordEncoder.encode(ADMIN_PASSWORD))
+                        .email(ADMIN_EMAIL)
                         .roles(roles)
                         .build();
 
                 userRepository.save(user);
-                log.warn("admin user has been created with default password is admin, please change it");
+                log.warn("admin user has been created with default password is 'admin', please change it");
             }
             log.info("Application initialization completed ........");
         };

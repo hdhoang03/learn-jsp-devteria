@@ -1,6 +1,8 @@
 package com.devteria.Demo_Spring_boot.dto.request;
 
 import com.devteria.Demo_Spring_boot.validator.DobConstraint;
+import com.devteria.Demo_Spring_boot.validator.EmailConstraint;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -22,8 +24,9 @@ public class UserCreationRequest {
     String firstName;
     String lastName;
 
+    @EmailConstraint(message = "INVALID_EMAIL")
+    String email;
+
     @DobConstraint(min = 18, message = "INVALID_DOB")//annotation tự tạo
     LocalDate dob;
-
-
 }

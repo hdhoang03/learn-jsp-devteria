@@ -19,6 +19,7 @@ public class UserResponse {
 //    String password; //thực tế không ai trả về password
     String firstName;
     String lastName;
+    String email;
     LocalDate dob;
     Set<RoleResponse> roles;
 }
