@@ -1,0 +1,5 @@
+#chay o moi truong production
+jwt:
+  #signerKey: "iqf7Z/J6HGJdFYaTUBbHbkxH1xJhCZdAFaF83+WeLCC7KTnPBZmifcbGfDH8BDyL" #dat trong bien moi truong de tang bao mat
+  valid-duration: 360 #in second
+  refreshable-duration: 720
