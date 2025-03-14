@@ -36,7 +36,7 @@ public class SecurityConfig {
             {"/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh"}; //truyền các API vào nhanh hơn, các API này truy cập không cần token như đăng ký tài khoản mới
 
     //ko cần vì đã map trong customJwtDecoder
-//    @Value("${jwt.signerKey}") //map signerKey từ file application.yaml vào trong này
+//    @Value("${jwt.signerKey}") //map signerKey từ file application vào trong này
 //    private String signerKey;
 
     @Autowired

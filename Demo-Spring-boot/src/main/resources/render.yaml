@@ -7,10 +7,13 @@ server:
 spring:
   datasource:
     #sau : la gia tri mac dinh neu khong co bien moi truong, o day neu khong co DBMS_CONNECTION se lay jdbc:mysql://.../identity_service
-    url: ${DBMS_CONNECTION:jdbc:mysql://localhost:3306/identity_service} #"jdbc:mysql://localhost:3306/identity_service" #identity_service la ten cua database
+    url: "mysql://root:syteRIJwoMVoELgzvgJVElpEQGKbtBRX@mysql.railway.internal:3306/railway"
+    #url: ${DBMS_CONNECTION:jdbc:mysql://localhost:3306/identity_service} #"jdbc:mysql://localhost:3306/identity_service" #identity_service la ten cua database
     driverClassName: "com.mysql.cj.jdbc.Driver"
-    username: ${DBMS_USERNAME:root} #root
-    password: ${DBMS_PASSWORD:root} #root
+    #username: ${DBMS_USERNAME:root} #root
+    #password: ${DBMS_PASSWORD:root} #root
+    username: "root"
+    password: "syteRIJwoMVoELgzvgJVElpEQGKbtBRX"
     #neu co bien moi truong no se override len :root dang sau
   jpa:
     hibernate:
