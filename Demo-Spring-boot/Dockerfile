@@ -12,7 +12,8 @@ COPY . .
 RUN mvn clean package -DskipTests
 
 
-FROM openjdk:17
+FROM eclipse-temurin:21-jdk AS build
+
 WORKDIR /app
 
 
