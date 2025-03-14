@@ -1,17 +1,21 @@
 
-FROM eclipse-temurin:17-jdk
-
-
-ENV SPRING_PROFILES_ACTIVE=prod
+FROM maven:3.8.6-openjdk-17 AS build
 
 
 WORKDIR /app
 
 
-COPY target/*.jar app.jar
+COPY . .
 
 
-EXPOSE 8080
+RUN mvn clean package -DskipTests
 
 
-CMD ["java", "-jar", "app.jar"]
+FROM openjdk:17
+WORKDIR /app
+
+
+COPY --from=build /app/target/*.jar app.jar
+
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
