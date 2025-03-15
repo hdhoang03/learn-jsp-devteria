@@ -95,18 +95,28 @@ public class UserService {
     //Dùng PreAuthorize vẫn tốt hơn
     public UserResponse getUserbyId(String id) {
         log.info("In method getUserbyId.");
-        return userMapper.toUserResponse(userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOTFOUND)));
+        return userMapper.toUserResponse(userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOTFOUND)));
 //                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
     //theo lastName
     public UserResponse getUserByLastName(String lastName){
         log.error("In method getUserbyLastName.");
-        return userMapper.toUserResponse(userRepository.findByLastName(lastName).orElseThrow(() -> new AppException(ErrorCode.USER_LASTNAME)));
+        return userMapper.toUserResponse(userRepository.findByLastName(lastName)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_LASTNAME)));
 //                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "lastName not found"));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse getUserByEmail(String email){
+        log.error("In method getUserbyEmail");
+        return userMapper.toUserResponse(userRepository.findByEmail(email).
+                orElseThrow(() -> new AppException(ErrorCode.USER_NOTFOUND)));
+    }
+
     public UserResponse updateUser(String userId, UserUpdateRequest request){
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("lastName not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("lastName not found"));
         userMapper.updateUser(user, request);
 
 //      thay vì làm từng dòng thì làm vậy sẽ nhanh hơn
@@ -136,7 +146,8 @@ public class UserService {
 //                .map(GrantedAuthority::getAuthority)
 //                .collect(Collectors.toList());
 
-        User user = userRepository.findByUsername(getName).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findByUsername(getName)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return userMapper.toUserResponse(user);
     }
     //Viết ngắn gọn hơn cách trên
