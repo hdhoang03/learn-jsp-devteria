@@ -72,7 +72,7 @@ public class UserController {
                 .build();
     }
 
-    @GetMapping("/{email}")
+    @GetMapping("/by_email/{email}")
     ApiResponse<UserResponse> getUserByEmail(@PathVariable String email){
         return ApiResponse.<UserResponse>builder()
                 .code(6666)

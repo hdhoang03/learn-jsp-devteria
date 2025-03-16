@@ -1,22 +1,22 @@
-#spring.application.name=Demo-Spring-boot
 server:
   port: 8080
   servlet:
-    context-path: /identity #??nh v? microservice
+    context-path: /identity
 
 spring:
   datasource:
-#    #sau : la gia tri mac dinh neu khong co bien moi truong, o day neu khong co DBMS_CONNECTION se lay jdbc:mysql://.../identity_service
-#    url: ${DBMS_CONNECTION:jdbc:mysql://localhost:3306/identity_service} #"jdbc:mysql://localhost:3306/identity_service" #identity_service la ten cua database
-#    driverClassName: "com.mysql.cj.jdbc.Driver"
-#    username: ${DBMS_USERNAME:root} #root
-#    password: ${DBMS_PASSWORD:root} #root
+    url: ${DBMS_CONNECTION:jdbc:mysql://localhost:3306/identity_service} #"jdbc:mysql://localhost:3306/identity_service" #identity_service la ten cua database
+    driverClassName: "com.mysql.cj.jdbc.Driver"
+    username: ${DBMS_USERNAME:root} #root
+    password: ${DBMS_PASSWORD:root} #root
+
+    #sau : la gia tri mac dinh neu khong co bien moi truong, o day neu khong co DBMS_CONNECTION se lay jdbc:mysql://.../identity_service
     #neu co bien moi truong no se override len :root dang sau
 
-    url: "jdbc:mysql://root:syteRIJwoMVoELgzvgJVElpEQGKbtBRX@maglev.proxy.rlwy.net:28113/railway"
-    driver-class-name: "com.mysql.cj.jdbc.Driver"
-    username: "root"
-    password: "syteRIJwoMVoELgzvgJVElpEQGKbtBRX"
+#    url: "jdbc:mysql://root:syteRIJwoMVoELgzvgJVElpEQGKbtBRX@maglev.proxy.rlwy.net:28113/railway"
+#    driver-class-name: "com.mysql.cj.jdbc.Driver"
+#    username: "root"
+#    password: "syteRIJwoMVoELgzvgJVElpEQGKbtBRX"
 
   jpa:
     hibernate:
