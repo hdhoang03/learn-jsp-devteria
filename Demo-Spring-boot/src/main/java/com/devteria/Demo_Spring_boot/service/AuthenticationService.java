@@ -1,9 +1,6 @@
 package com.devteria.Demo_Spring_boot.service;
 
-import com.devteria.Demo_Spring_boot.dto.request.AuthenticationRequest;
-import com.devteria.Demo_Spring_boot.dto.request.IntrospectRequest;
-import com.devteria.Demo_Spring_boot.dto.request.LogoutRequest;
-import com.devteria.Demo_Spring_boot.dto.request.RefreshRequest;
+import com.devteria.Demo_Spring_boot.dto.request.*;
 import com.devteria.Demo_Spring_boot.dto.response.AuthenticationResponse;
 import com.devteria.Demo_Spring_boot.dto.response.IntrospectResponse;
 import com.devteria.Demo_Spring_boot.entity.InvalidatedToken;
@@ -11,6 +8,7 @@ import com.devteria.Demo_Spring_boot.entity.User;
 import com.devteria.Demo_Spring_boot.exception.AppException;
 import com.devteria.Demo_Spring_boot.exception.ErrorCode;
 import com.devteria.Demo_Spring_boot.repository.InvalidatedTokenRepository;
+import com.devteria.Demo_Spring_boot.repository.OutboundIdentityClient;
 import com.devteria.Demo_Spring_boot.repository.UserRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -42,6 +40,7 @@ import java.util.UUID;
 public class AuthenticationService {
     UserRepository userRepository; //DI
     InvalidatedTokenRepository invalidatedTokenRepository;
+    OutboundIdentityClient outboundIdentityClient;
 
     @NonFinal// không DI
     @Value("${jwt.signerKey}")
@@ -55,6 +54,20 @@ public class AuthenticationService {
     @Value("${jwt.refreshable-duration}")
     protected long REFRESH_DURATION;
 
+    @NonFinal
+    @Value("${outbound.identity.client-id}")
+    protected String CLIENT_ID;
+
+    @NonFinal
+    @Value("${outbound.identity.client-secret}")
+    protected String CLIENT_SECRET;
+
+    @NonFinal
+    @Value("${outbound.identity.redirect-uri}")
+    protected String REDIRECT_URI;
+
+    @NonFinal
+    protected final String GRANT_TYPE = "authorization_code";
 
     public IntrospectResponse introspect(IntrospectRequest request)
             throws JOSEException, ParseException {
@@ -68,6 +81,21 @@ public class AuthenticationService {
         }
         return IntrospectResponse.builder()
                 .valid(isValid)
+                .build();
+    }
+
+    public AuthenticationResponse outboundAuthenticate(String code){
+        var reponse = outboundIdentityClient.exchangeToken(ExchangeTokenRequest.builder()
+                        .code(code)
+                        .clientId(CLIENT_ID)
+                        .clientSecret(CLIENT_SECRET)
+                        .redirectUri(REDIRECT_URI)
+                        .grantType(GRANT_TYPE)
+                .build());
+        log.info("TOKEN RESPONSE {}", reponse);
+
+        return AuthenticationResponse.builder()
+                .token(reponse.getAccessToken())
                 .build();
     }
 

@@ -24,7 +24,13 @@ spring:
     show-sql: true
 
     #local thi xoa
-    database-platform: org.hibernate.dialect.MySQL8Dialect
+#    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+outbound:
+  identity:
+    client-id:
+    client-secret:
+    redirect-uri:
 
 jwt:
   signerKey: "b2yoP+BXkNpTkT3UA7TSAHxqoLxuzgZIRmscynx2zbm5PHbtt3U+JB5N1G6AIrNg"

@@ -14,7 +14,7 @@ import lombok.experimental.FieldDefaults;
 public class ExchangeTokenRequest {
     String code;
     String clientId;
-    String clientServer;
+    String clientSecret;
     String redirectUri;
     String grantType;
 }

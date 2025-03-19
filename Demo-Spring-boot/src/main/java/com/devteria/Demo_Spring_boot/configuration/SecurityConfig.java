@@ -1,6 +1,7 @@
 package com.devteria.Demo_Spring_boot.configuration;
 
 import com.devteria.Demo_Spring_boot.enums.Role;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -33,7 +34,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final String[] PUBLIC_ENDPOINTS =
-            {"/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh"}; //truyền các API vào nhanh hơn, các API này truy cập không cần token như đăng ký tài khoản mới
+            {"/users", "/auth/token", "/auth/introspect", "/auth/logout", "/auth/refresh",
+            "/auth/outbound/authentication"}; //truyền các API vào nhanh hơn, các API này truy cập không cần token như đăng ký tài khoản mới
 
     //ko cần vì đã map trong customJwtDecoder
 //    @Value("${jwt.signerKey}") //map signerKey từ file application vào trong này
@@ -48,9 +50,6 @@ public class SecurityConfig {
 //                request.requestMatchers(HttpMethod.POST, "/users").permitAll()
 //                        .requestMatchers(HttpMethod.POST, "/auth/token", "/auth/introspect").permitAll()
                 request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll() //truyền vào đây
-//                        .requestMatchers(HttpMethod.GET, "/users")
-//                        .hasAuthority("ROLE_ADMIN")//get mà có scope là admin thì mới có thể get được thông tin user, mặc định là scope_ mình đã đặt lại thành role_ rồi lấy scope gán vào hậu tố
-//                        .hasRole(Role.ADMIN.name())//lấy role trong authority luôn không cần dùng hasAuthority
                         .anyRequest().authenticated());//còn lại các request khác phải dùng token
 
         httpSecurity.oauth2ResourceServer(oauth2 ->
@@ -93,16 +92,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://127.0.0.1:5500")); // Đổi theo frontend của bạn http://127.0.0.1:5500
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));//*
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));//*
-        configuration.setAllowCredentials(true);
-
+    public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.addAllowedOrigin("*"); // Đổi theo frontend của bạn http://127.0.0.1:5500
+        configuration.addAllowedMethod("*");//*
+        configuration.addAllowedHeader("*");//*
+
+//        configuration.setAllowCredentials(true);//cho cookie/token gửi lên
         source.registerCorsConfiguration("/**", configuration);
-        return source;
+        return new CorsFilter(source);
     }
 }
 /*
