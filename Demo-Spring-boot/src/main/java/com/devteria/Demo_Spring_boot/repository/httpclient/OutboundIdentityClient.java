@@ -1,4 +1,4 @@
-package com.devteria.Demo_Spring_boot.repository;
+package com.devteria.Demo_Spring_boot.repository.httpclient;
 
 import com.devteria.Demo_Spring_boot.dto.request.ExchangeTokenRequest;
 import com.devteria.Demo_Spring_boot.dto.response.ExchangeTokenResponse;

@@ -20,6 +20,8 @@ public class GlobalExceptionHandler {
 
     private static final String MIN_ATTRIBUTE = "min";//lấy giá trị min từ
 
+
+
     @ExceptionHandler(value = Exception.class) //xử lý lỗi ngoại lệ
 //      bài cũ
 //    ResponseEntity<String> handlingRuntimeException(RuntimeException exception){

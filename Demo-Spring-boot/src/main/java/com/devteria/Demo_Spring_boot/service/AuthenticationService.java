@@ -1,15 +1,18 @@
 package com.devteria.Demo_Spring_boot.service;
 
+import com.devteria.Demo_Spring_boot.constaint.PredefinedRole;
 import com.devteria.Demo_Spring_boot.dto.request.*;
 import com.devteria.Demo_Spring_boot.dto.response.AuthenticationResponse;
 import com.devteria.Demo_Spring_boot.dto.response.IntrospectResponse;
 import com.devteria.Demo_Spring_boot.entity.InvalidatedToken;
+import com.devteria.Demo_Spring_boot.entity.Role;
 import com.devteria.Demo_Spring_boot.entity.User;
 import com.devteria.Demo_Spring_boot.exception.AppException;
 import com.devteria.Demo_Spring_boot.exception.ErrorCode;
 import com.devteria.Demo_Spring_boot.repository.InvalidatedTokenRepository;
-import com.devteria.Demo_Spring_boot.repository.OutboundIdentityClient;
+import com.devteria.Demo_Spring_boot.repository.httpclient.OutboundIdentityClient;
 import com.devteria.Demo_Spring_boot.repository.UserRepository;
+import com.devteria.Demo_Spring_boot.repository.httpclient.OutboundUserClient;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -29,9 +32,7 @@ import org.springframework.util.CollectionUtils;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +42,7 @@ public class AuthenticationService {
     UserRepository userRepository; //DI
     InvalidatedTokenRepository invalidatedTokenRepository;
     OutboundIdentityClient outboundIdentityClient;
+    OutboundUserClient outboundUserClient;
 
     @NonFinal// không DI
     @Value("${jwt.signerKey}")
@@ -92,7 +94,26 @@ public class AuthenticationService {
                         .redirectUri(REDIRECT_URI)
                         .grantType(GRANT_TYPE)
                 .build());
+
         log.info("TOKEN RESPONSE {}", reponse);
+
+        var userInfo = outboundUserClient.getUserInfo("json", reponse.getAccessToken());
+
+        log.info("User info {}", userInfo);
+
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.builder()
+                        .name(PredefinedRole.USER_ROLE)
+                .build());
+
+        var user = userRepository.findByUsername(userInfo.getEmail()).orElseGet(
+                ()-> userRepository.save(User.builder()
+                                .username(userInfo.getEmail())
+                                .firstName(userInfo.getGivenName())
+                                .lastName(userInfo.getFamilyName())
+                                .email(userInfo.getEmail())
+                                .roles(roles)
+                        .build()));
 
         return AuthenticationResponse.builder()
                 .token(reponse.getAccessToken())
