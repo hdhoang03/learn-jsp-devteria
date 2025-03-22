@@ -97,6 +97,7 @@ public class AuthenticationService {
 
         log.info("TOKEN RESPONSE {}", reponse);
 
+        //get user info
         var userInfo = outboundUserClient.getUserInfo("json", reponse.getAccessToken());
 
         log.info("User info {}", userInfo);
@@ -106,6 +107,7 @@ public class AuthenticationService {
                         .name(PredefinedRole.USER_ROLE)
                 .build());
 
+        //onboard user
         var user = userRepository.findByUsername(userInfo.getEmail()).orElseGet(
                 ()-> userRepository.save(User.builder()
                                 .username(userInfo.getEmail())
@@ -115,8 +117,11 @@ public class AuthenticationService {
                                 .roles(roles)
                         .build()));
 
+        var token = generateToken(user); //chuyển đổi token của google sang của hệ thống
+
         return AuthenticationResponse.builder()
-                .token(reponse.getAccessToken())
+//                .token(reponse.getAccessToken())// lấy token của google
+                .token(token)
                 .build();
     }
 
@@ -232,7 +237,7 @@ public class AuthenticationService {
             user.getRoles().forEach(role -> {
                 stringJoiner.add("ROLE_" + role.getName());//để phân biệt ROLE_ và Permission
                 if(!CollectionUtils.isEmpty(role.getPermissions()))
-                role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
+                    role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
             });
         }
         return stringJoiner.toString();
