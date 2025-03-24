@@ -1,4 +1,4 @@
-package com.devteria.Demo_Spring_boot.dto.request;
+package com.devteria.Demo_Spring_boot.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;

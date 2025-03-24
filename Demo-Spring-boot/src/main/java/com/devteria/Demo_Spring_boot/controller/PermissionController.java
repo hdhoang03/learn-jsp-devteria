@@ -1,6 +1,6 @@
 package com.devteria.Demo_Spring_boot.controller;
 
-import com.devteria.Demo_Spring_boot.dto.request.ApiResponse;
+import com.devteria.Demo_Spring_boot.dto.ApiResponse;
 import com.devteria.Demo_Spring_boot.dto.request.PermissionRequest;
 import com.devteria.Demo_Spring_boot.dto.response.PermissionResponse;
 import com.devteria.Demo_Spring_boot.service.PermissionService;

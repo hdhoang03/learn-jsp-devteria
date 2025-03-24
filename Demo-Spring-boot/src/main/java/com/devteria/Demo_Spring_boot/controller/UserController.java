@@ -1,19 +1,17 @@
 package com.devteria.Demo_Spring_boot.controller;
 
 
-import com.devteria.Demo_Spring_boot.dto.request.ApiResponse;
+import com.devteria.Demo_Spring_boot.dto.ApiResponse;
+import com.devteria.Demo_Spring_boot.dto.request.PasswordCreationRequest;
 import com.devteria.Demo_Spring_boot.dto.request.UserCreationRequest;
 import com.devteria.Demo_Spring_boot.dto.request.UserUpdateRequest;
 import com.devteria.Demo_Spring_boot.dto.response.UserResponse;
-import com.devteria.Demo_Spring_boot.entity.User;
-import com.devteria.Demo_Spring_boot.repository.UserRepository;
 import com.devteria.Demo_Spring_boot.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +31,14 @@ public class UserController {
     ApiResponse<UserResponse> createdUser(@RequestBody @Valid UserCreationRequest request) { //validate object
         return ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(request))
+                .build();
+    }
+
+    @PostMapping("/create-password")//24/3
+    ApiResponse<Void> createdPassword(@RequestBody @Valid PasswordCreationRequest request) { //validate object
+        userService.createPassword(request);
+        return ApiResponse.<Void>builder()
+                .message("Password has been created, you could use it to log-in")
                 .build();
     }
 

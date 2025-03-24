@@ -1,6 +1,7 @@
 package com.devteria.Demo_Spring_boot.service;
 
 import com.devteria.Demo_Spring_boot.constaint.PredefinedRole;
+import com.devteria.Demo_Spring_boot.dto.request.PasswordCreationRequest;
 import com.devteria.Demo_Spring_boot.dto.request.UserCreationRequest;
 import com.devteria.Demo_Spring_boot.dto.request.UserUpdateRequest;
 import com.devteria.Demo_Spring_boot.dto.response.UserResponse;
@@ -23,6 +24,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -81,6 +83,19 @@ public class UserService {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
         return userMapper.toUserResponse(user);
+    }
+
+    public void createPassword(PasswordCreationRequest request){ //tao password moi khi dang nhap tu google
+        var getContext = SecurityContextHolder.getContext();//lấy context hiện tại của người dùng đang đăng nhập
+        String getName = getContext.getAuthentication().getName();//lấy tên của người dùng đang đăng nhập
+
+        User user = userRepository.findByUsername(getName)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        //kiem tra user co password chua
+        if(StringUtils.hasText(user.getPassword())) throw new AppException(ErrorCode.PASSWORD_EXISTED);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));//ma hoa password
+        userRepository.save(user);
     }
 
     @PreAuthorize("hasRole('ADMIN')")//Kiểm tra nếu role là admin mới chạy hàm này, phân quyền theo role
@@ -148,7 +163,10 @@ public class UserService {
 
         User user = userRepository.findByUsername(getName)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        return userMapper.toUserResponse(user);
+
+        var userRespone = userMapper.toUserResponse(user);
+        userRespone.setNoPassword(!StringUtils.hasText(user.getPassword()));//get thong tin coi user co password chua
+        return userRespone;
     }
     //Viết ngắn gọn hơn cách trên
     public UserResponse getMyInfo2(){

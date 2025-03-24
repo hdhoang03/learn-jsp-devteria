@@ -1,6 +1,6 @@
 package com.devteria.Demo_Spring_boot.configuration;
 
-import com.devteria.Demo_Spring_boot.dto.request.ApiResponse;
+import com.devteria.Demo_Spring_boot.dto.ApiResponse;
 import com.devteria.Demo_Spring_boot.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;

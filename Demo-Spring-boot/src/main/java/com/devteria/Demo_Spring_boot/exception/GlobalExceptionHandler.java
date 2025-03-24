@@ -1,6 +1,6 @@
 package com.devteria.Demo_Spring_boot.exception;
 
-import com.devteria.Demo_Spring_boot.dto.request.ApiResponse;
+import com.devteria.Demo_Spring_boot.dto.ApiResponse;
 import jakarta.validation.ConstraintViolation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +9,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.rmi.AccessException;
 import java.util.Map;
 import java.util.Objects;
 
