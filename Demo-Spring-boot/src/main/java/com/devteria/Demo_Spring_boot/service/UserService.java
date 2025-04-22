@@ -36,43 +36,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor // khỏi cần đánh dấu autowired, tạo constructor mà b iến đánh dấu là final sẽ tự động đưa vào constructor và DI
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService {
-//    @Autowired //DI tiêm userresponsitory
-//    private final UserRepository userRepository;
-//    @Autowired
-//    private final UserMapper userMapper;
     UserMapper userMapper;
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
     RoleRepository roleRepository;
+    RedisService redisService;
 
     public UserResponse createUser(UserCreationRequest request){
-        // Kiểm tra xem username đã tồn tại chưa 46 và 50 đã // ngày 10/3 vì đã đánh annotation @column trường username thì không cần kiểm tra tồn tại hay chưa
-//        if (userRepository.existsByUsername(request.getUsername()))
-//            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists"); //không dùng vì có class xử lý lỗi rồi
-//            throw new RuntimeException("User existed.");
-//            throw new AppException(ErrorCode.USER_EXISTED); //throw exception với 1 errorcode đã định nghĩa, ở đây là USER_EXISTED
-//            throw new RuntimeException("ErrorCode.USER_EXITED");
-
         User user = userMapper.toUser(request);
 
-//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);//độ khó mã hóa (đã đánh dấu bean bên class SecurityConfig)
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         HashSet<Role> roles = new HashSet<>();
         roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(roles::add);
 
         user.setRoles(roles);
-
-//        Role userRole = roleRepository.findByName("USER").orElseThrow(()->new AppException(ErrorCode.UNAUTHENTICATED));
-//        user.setRoles(Collections.singleton(userRole));
-
-//        user.setRoles(roles);
-//          thay vì tạo thủ công bằng tay sẽ map dữ liệu từ CreateUserRequest sang user rồi gọi toUser truyền request đó vào
-//        user.setUsername(request.getUsername());
-//        user.setPassword(request.getPassword());
-//        user.setFirstName(request.getFirstName());
-//        user.setLastName(request.getLastName());
-//        user.setDob(request.getDob());
 
         try {//nếu tồn tại nhả lỗi userexisted và ngược lại sẽ lưu user để cho dbms làm chứ không cần làm thủ công
             user = userRepository.save(user);
@@ -106,27 +84,50 @@ public class UserService {
                 .map(user -> userMapper.toUserResponse(user)).toList();//userMapper::toUserResponse
     }
 
-    @PostAuthorize("returnObject.username == authentication.name")//lấy user từ id nếu username của mình là username đang đăng nhập thì có thể trả về thông tin của mình
+//    @PostAuthorize("returnObject.username == authentication.name")//lấy user từ id nếu username của mình là username đang đăng nhập thì có thể trả về thông tin của mình
     //Dùng PreAuthorize vẫn tốt hơn
+    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse getUserbyId(String id) {
         log.info("In method getUserbyId.");
-        return userMapper.toUserResponse(userRepository.findById(id)
+
+        //Kiểm tra xem thông tin người dùng đã lưu trong Redis chưa, nếu có sẽ lấy trong Redis ngược lại truy vấn db
+        String redisKey = "user:" + id;
+        Object cacheUser = redisService.getValue(redisKey);
+        if(cacheUser != null){
+            return (UserResponse) cacheUser;
+        }
+
+        UserResponse user = userMapper.toUserResponse(userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOTFOUND)));
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        //Lưu vào Redis
+        redisService.setValue(redisKey, user, 2);//Lưu cache Redis 2 phút
+        return user;
     }
+
     //theo lastName
     public UserResponse getUserByLastName(String lastName){
         log.error("In method getUserbyLastName.");
         return userMapper.toUserResponse(userRepository.findByLastName(lastName)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_LASTNAME)));
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "lastName not found"));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     public UserResponse getUserByEmail(String email){
         log.error("In method getUserbyEmail");
-        return userMapper.toUserResponse(userRepository.findByEmail(email).
+
+        String redisKey = "user:email:" + email;
+        UserResponse cacheUser = (UserResponse) redisService.getValue(redisKey);
+//        Object cacheUser = redisService.getValue(redisKey);
+        if(cacheUser != null){
+            return (UserResponse) cacheUser;
+        }
+
+        UserResponse user = userMapper.toUserResponse(userRepository.findByEmail(email).
                 orElseThrow(() -> new AppException(ErrorCode.USER_NOTFOUND)));
+
+        redisService.setValue(redisKey, user, 3);
+        return user;
     }
 
     public UserResponse updateUser(String userId, UserUpdateRequest request){
@@ -156,6 +157,12 @@ public class UserService {
     public UserResponse getMyInfo(){
         var getContext = SecurityContextHolder.getContext();//lấy context hiện tại của người dùng đang đăng nhập
         String getName = getContext.getAuthentication().getName();//lấy tên của người dùng đang đăng nhập
+        String redisKey = "user:myInfo:" + getName;
+
+        Object cacheUser = redisService.getValue(redisKey);
+        if(cacheUser != null){
+            return (UserResponse) cacheUser;
+        }
 //        List<String> roles = getContext.getAuthentication().getAuthorities()
 //                .stream()
 //                .map(GrantedAuthority::getAuthority)
@@ -164,9 +171,10 @@ public class UserService {
         User user = userRepository.findByUsername(getName)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        var userRespone = userMapper.toUserResponse(user);
-        userRespone.setNoPassword(!StringUtils.hasText(user.getPassword()));//get thong tin coi user co password chua
-        return userRespone;
+        var userResponse = userMapper.toUserResponse(user);
+        redisService.setValue(redisKey, userResponse, 2);
+        userResponse.setNoPassword(!StringUtils.hasText(user.getPassword()));//get thong tin coi user co password chua
+        return userResponse;
     }
     //Viết ngắn gọn hơn cách trên
     public UserResponse getMyInfo2(){

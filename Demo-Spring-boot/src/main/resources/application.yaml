@@ -24,7 +24,11 @@ spring:
     show-sql: true
 
     #local thi xoa
-#    database-platform: org.hibernate.dialect.MySQL8Dialect
+    #database-platform: org.hibernate.dialect.MySQL8Dialect
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 outbound:
   identity:

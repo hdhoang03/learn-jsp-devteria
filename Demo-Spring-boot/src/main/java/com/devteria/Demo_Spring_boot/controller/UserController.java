@@ -23,8 +23,6 @@ import java.util.List;
 @RequestMapping("/users") //Sử dụng nhiều nên định nghĩa 1 lần, cần post, get, put, delete thì gọi annotation ở dưới thôi
 @Slf4j
 public class UserController {
-    //    @Autowired //(DI) tiêm userservice
-//    private final UserService userService;
     UserService userService;
 
     @PostMapping
